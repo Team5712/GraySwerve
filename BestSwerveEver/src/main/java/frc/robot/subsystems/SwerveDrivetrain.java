@@ -5,8 +5,9 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+//import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.sensors.CANCoder;
-
+import com.ctre.phoenix.sensors.PigeonIMU;
 
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
@@ -17,6 +18,8 @@ import edu.wpi.first.wpilibj.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.AnalogGyro;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 public class SwerveDrivetrain extends SubsystemBase {
@@ -51,7 +54,10 @@ public class SwerveDrivetrain extends SubsystemBase {
   public static final int backRightDriveId = 7; 
   public static final int backRightCANCoderId = 12; 
   public static final int backRightSteerId = 8;   
-  public static AHRS gyro = new AHRS(SPI.Port.kMXP);
+  public static ADXRS450_Gyro gyro = new ADXRS450_Gyro();
+  public static PigeonIMU pigeon = new PigeonIMU(13);
+  public static double [] ypr = new double[3];
+
 
   private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
     new Translation2d(
@@ -85,6 +91,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 
   public SwerveDrivetrain() {
     gyro.reset(); 
+    pigeon.getYawPitchRoll(ypr);
   }
 
   /**
@@ -99,7 +106,7 @@ public class SwerveDrivetrain extends SubsystemBase {
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean calibrateGyro) {
     
     if(calibrateGyro){
-      System.out.println("RESET GYRO");
+      //System.out.println("RESET GYRO");
       gyro.reset(); //recalibrates gyro offset
     }
     
@@ -116,9 +123,27 @@ public class SwerveDrivetrain extends SubsystemBase {
       //below is a line to comment out from step 5
       module.setDesiredState(state);
       SmartDashboard.putNumber("gyro Angle", gyro.getAngle());
+      System.out.println("GYRO ANGLE: " + pigeon.getYawPitchRoll(ypr));
     }
   }
   
+  public double driveToTicks(double ticks) {
+    double encoder = modules[1].getDriveEncoder();
+    double encoderGoal = ticks;
+    double error = encoderGoal - encoder;
+    double kP = .00010;
+    double finalOutput = error * kP;
+    return finalOutput;
+
+  }
+
+  public void printEncoders() {
+    System.out.println("DRIVE ENCODER: " + modules[1].getDriveEncoder());
+  }
+
+  public void resetEncoders() {
+    modules[1].resetEncoders();
+  }
 
   @Override
   public void periodic() {

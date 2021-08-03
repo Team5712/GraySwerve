@@ -53,7 +53,7 @@ public class SwerveModuleMK3 {
     angleTalonFXConfiguration.primaryPID.selectedFeedbackSensor = FeedbackDevice.RemoteSensor0;
     angleMotor.configAllSettings(angleTalonFXConfiguration);
     angleMotor.setNeutralMode(NeutralMode.Brake); //not needed but nice to keep the robot stopped when you want it stopped
-
+    angleMotor.configNeutralDeadband(.2);
     TalonFXConfiguration driveTalonFXConfiguration = new TalonFXConfiguration();
 
     driveTalonFXConfiguration.slot0.kP = kDriveP;
@@ -63,6 +63,7 @@ public class SwerveModuleMK3 {
 
     driveMotor.configAllSettings(driveTalonFXConfiguration);
     driveMotor.setNeutralMode(NeutralMode.Brake);
+    driveMotor.configNeutralDeadband(.2);
 
     CANCoderConfiguration canCoderConfiguration = new CANCoderConfiguration();
     canCoderConfiguration.magnetOffsetDegrees = offset.getDegrees();
@@ -81,6 +82,14 @@ public class SwerveModuleMK3 {
   }
   public double getRawAngle() {
     return canCoder.getAbsolutePosition(); //include angle offset
+  }
+
+  public double getDriveEncoder() {
+    return driveMotor.getSelectedSensorPosition(0);
+  }
+
+  public void resetEncoders() {
+    driveMotor.setSelectedSensorPosition(0);
   }
   //:)
   /**
@@ -106,7 +115,7 @@ public class SwerveModuleMK3 {
     double feetPerSecond = Units.metersToFeet(state.speedMetersPerSecond);
    // System.out.println("FPS " + feetPerSecond / SwerveDrivetrain.kMaxSpeed);
     //below is a line to comment out from step 5
-    driveMotor.set(TalonFXControlMode.PercentOutput, feetPerSecond / SwerveDrivetrain.kMaxSpeed * .75);
+    driveMotor.set(TalonFXControlMode.PercentOutput, feetPerSecond / SwerveDrivetrain.kMaxSpeed);
   }
 
 }

@@ -12,7 +12,7 @@ public class SwerveDriveCommand extends CommandBase {
 
   private final SwerveDrivetrain drivetrain;
   private final XboxController controller;
-
+  
   // Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
   private final SlewRateLimiter xspeedLimiter = new SlewRateLimiter(3);
   private final SlewRateLimiter yspeedLimiter = new SlewRateLimiter(3);
@@ -23,15 +23,16 @@ public class SwerveDriveCommand extends CommandBase {
     addRequirements(drivetrain);
 
     this.controller = controller;
+    drivetrain.resetEncoders();
   }
 
   @Override
   public void execute() {
     // Get the x speed. We are inverting this because Xbox controllers return
     // negative values when we push forward.
-    System.out.println("Y: " + controller.getY(GenericHID.Hand.kLeft));
-    System.out.println("X: " + controller.getX(GenericHID.Hand.kLeft));
-    System.out.println("rot: " + controller.getX(GenericHID.Hand.kRight));
+    // System.out.println("Y: " + controller.getY(GenericHID.Hand.kLeft));
+    // System.out.println("X: " + controller.getX(GenericHID.Hand.kLeft));
+    // System.out.println("rot: " + controller.getX(GenericHID.Hand.kRight));
     final var xSpeed =
       xspeedLimiter.calculate(controller.getY(GenericHID.Hand.kLeft))
         * SwerveDrivetrain.kMaxSpeed;
@@ -52,6 +53,8 @@ public class SwerveDriveCommand extends CommandBase {
         * SwerveDrivetrain.kMaxAngularSpeed;
 
     boolean calibrate = controller.getBumper(GenericHID.Hand.kLeft);
+
+    drivetrain.printEncoders();
 
     drivetrain.drive(xSpeed, ySpeed, rot, true, calibrate);
     
